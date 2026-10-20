@@ -2,6 +2,14 @@ from functools import lru_cache
 
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine import URL, make_url
+
+
+def normalize_database_url(database_url: str) -> URL:
+    url = make_url(database_url)
+    if url.drivername.partition("+")[0] in {"postgres", "postgresql"}:
+        return url.set(drivername="postgresql+psycopg")
+    return url
 
 
 class Settings(BaseSettings):

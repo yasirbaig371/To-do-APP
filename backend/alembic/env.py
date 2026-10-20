@@ -4,7 +4,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.db.base import Base
-from app.core.config import get_settings
+from app.core.config import get_settings, normalize_database_url
 from app import models  # noqa: F401
 
 config = context.config
@@ -13,7 +13,9 @@ if config.config_file_name is not None:
 
 config.set_main_option(
     "sqlalchemy.url",
-    get_settings().database_url.replace("%", "%%"),
+    normalize_database_url(get_settings().database_url)
+    .render_as_string(hide_password=False)
+    .replace("%", "%%"),
 )
 
 target_metadata = Base.metadata
