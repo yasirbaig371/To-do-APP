@@ -1,7 +1,15 @@
 from functools import lru_cache
-
+import json  # <-- Add this import
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine import URL, make_url
+
+
+def normalize_database_url(database_url: str) -> URL:
+    url = make_url(database_url)
+    if url.drivername.partition("+")[0] in {"postgres", "postgresql"}:
+        return url.set(drivername="postgresql+psycopg")
+    return url
 
 
 class Settings(BaseSettings):
@@ -19,6 +27,22 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    # --- ADD THIS CORS VALIDATOR BLOCK ---
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, value: typing.Any) -> list[str]:
+        if isinstance(value, str):
+            # If it's a JSON array format, parse it
+            if value.startswith("[") and value.endswith("]"):
+                try:
+                    return json.loads(value)
+                except json.JSONDecodeError:
+                    pass
+            # If it's a plain string or comma-separated string, split it safely
+            return [item.strip() for item in value.split(",") if item.strip()]
+        return value
+    # -------------------------------------
 
     @field_validator("jwt_secret_key")
     @classmethod
