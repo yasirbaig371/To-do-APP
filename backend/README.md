@@ -76,6 +76,39 @@ alembic stamp head
 Afterward, use Alembic for future schema changes. The migration is checked into
 source control; no credentials are stored in it.
 
+### Deploy the API to Vercel
+
+Create a Vercel project connected to this repository and set its **Root
+Directory** to `backend`. The checked-in `vercel.json` routes requests to the
+FastAPI app in `app/main.py`; Vercel installs dependencies from
+`requirements.txt`.
+
+Add these environment variables in the Vercel project settings:
+
+- `DATABASE_URL`: connection URL for a production PostgreSQL database reachable
+  from Vercel. In Vercel, use the Neon pooled connection string for the runtime
+  and make sure it is saved under this exact variable name.
+- `JWT_SECRET_KEY`: a unique, randomly generated secret of at least 32
+  characters. Generate it locally; do not use the development value.
+- `CORS_ORIGINS`: JSON array containing the exact deployed frontend origin, for
+  example `["https://your-frontend.vercel.app"]`.
+- `OPENROUTER_API_KEY` or `OPENAI_API_KEY`: optional; set one if the chat
+  feature should be enabled.
+
+Run the Alembic migration against the production database before sending
+traffic. For an empty database, use `alembic upgrade head`; if the database
+already has the exact schema from `database/schema.sql`, use `alembic stamp head`
+instead. Do not expose a development database or commit environment secrets.
+After deployment, check `https://your-backend.vercel.app/health`; it should
+return `{"status":"ok"}`. Use this deployment's URL plus `/api` as the
+frontend's `VITE_API_BASE_URL`.
+
+If `/health` succeeds but registration or login returns HTTP 500, check the
+Vercel function logs for the database error, confirm `DATABASE_URL` points to
+the intended Neon project, and run the migration above. `/health` only confirms
+that the API process started; it does not verify database connectivity or that
+the schema exists.
+
 ### Start the API and Swagger UI
 
 ```powershell

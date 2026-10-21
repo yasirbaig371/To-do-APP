@@ -45,6 +45,26 @@ in-memory session and returns protected pages to sign-in. Logout discards the
 token; the backend is stateless, so an already-issued token remains valid until
 it expires. HTTPS is required in production.
 
+## Deploy to Vercel
+
+Deploy the frontend and backend as **two Vercel projects** connected to this
+repository:
+
+1. Create the backend project with **Root Directory** set to `backend`. Follow
+   the deployment and environment setup in [backend/README.md](../backend/README.md).
+2. Create the frontend project with **Root Directory** set to `frontend`. Its
+   `vercel.json` builds the Vite app into `dist` and rewrites client-side routes
+   to the app entry point.
+3. In the frontend project's environment variables, set `VITE_API_BASE_URL` to
+   the deployed backend URL ending in `/api` (for example,
+   `https://your-backend.vercel.app/api`). This value is public in the frontend
+   bundle; do not put secrets in it. Redeploy the frontend after changing it.
+4. Set the backend's `CORS_ORIGINS` environment variable to a JSON array
+   containing the deployed frontend origin, for example
+   `["https://your-frontend.vercel.app"]`, then redeploy the backend.
+   The backend's FastAPI CORS middleware reads this setting; do not add a
+   separate hard-coded CORS origin in Vercel settings.
+
 ## Checks
 
 ```powershell
