@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     database_url: str
     jwt_secret_key: SecretStr
     access_token_expire_minutes: int = 15
-    cors_origins: list[str] = ["http://localhost:5173"]
+    cors_origins: list[str] = ["https://to-do-app-blue-five.vercel.app"]
     openrouter_api_key: SecretStr | None = None
     openrouter_model: str = "liquid/lfm-2.5-2.6b:free"
     openai_api_key: SecretStr | None = None

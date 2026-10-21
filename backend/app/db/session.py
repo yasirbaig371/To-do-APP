@@ -1,3 +1,4 @@
+
 from collections.abc import Generator
 
 from sqlalchemy import create_engine, event
@@ -13,13 +14,20 @@ connect_args = (
     if is_postgresql
     else {}
 )
-engine = create_engine(database_url, pool_pre_ping=True, connect_args=connect_args)
+engine = create_engine(
+    database_url,
+    pool_pre_ping=True,
+    connect_args=connect_args,
+)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 
 if is_postgresql:
     @event.listens_for(engine, "connect")
-    def set_utc_timezone(dbapi_connection: object, connection_record: object) -> None:
+    def set_utc_timezone(
+        dbapi_connection: object,
+        connection_record: object,
+    ) -> None:
         del connection_record
         cursor = dbapi_connection.cursor()
         cursor.execute("SET TIME ZONE 'UTC'")
